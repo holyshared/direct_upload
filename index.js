@@ -4,4 +4,10 @@ const app = express();
 
 app.use(express.static('public'));
 
+app.post('/upload', (req, res) => {
+  res.json({
+    url: 'https://example.com'
+  });
+});
+
 app.listen(process.env.PORT || 3000);
