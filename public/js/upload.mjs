@@ -38,7 +38,7 @@ const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
   controller.abort();
 }, seconds * 1000);
 
-const timeout = timeoutAfter(20);
+const timeout = timeoutAfter(40);
 
 function tryFetchUploadURL(payload) {
   const abortController = new AbortController();
@@ -74,6 +74,7 @@ export function domContentLoaded() {
     }).catch((err) => {
       console.log('fetch error');
       console.log(err);
+      console.log(err.message);
     });
   });
 };
