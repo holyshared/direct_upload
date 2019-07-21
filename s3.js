@@ -19,7 +19,7 @@ const randomPrefix = (len = 4) => {
     .slice(0, len);
 };
 
-export const presignedPost = (suffixPath) => () => {
+const presignedPost = (suffixPath) => () => {
   const key = uuid();
   const prefixPath = `${randomPrefix(4)}${suffixPath}`;
   const params = {
@@ -40,6 +40,6 @@ export const presignedPost = (suffixPath) => () => {
   });
 };
 
-export const image = {
+exports.image = {
   presignedPost: presignedPost('_images')
 };
