@@ -18,6 +18,20 @@ function fetchUploadURL(payload) {
   });
 }
 
+function fetchUploadTo(url, payload) {
+  const formData = Object.keys(payload.variables).reduce((fd, key) => {
+    fd.append(key, payload.variables[key]);
+    return fd;
+  }, new FormData());
+
+  const req = Object.assign({
+    method: 'POST',
+    body: formData
+  }, payload.options);
+
+  return fetch(url, req);
+}
+
 const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
   controller.abort();
 }, seconds * 1000);
@@ -33,6 +47,20 @@ function tryFetchUploadURL(payload) {
   return fetchUploadURL(req);
 }
 
+function tryFetchUpload(payload, file) {
+  const abortController = new AbortController();
+
+  const url = payload.url;
+  const variables = Object.assign({ file: file }, payload);
+  delete variables.url;
+
+  const req = Object.assign({ variables: variables }, { options: { signal: abortController.signal } });
+
+  timeout(abortController);
+
+  return fetchUploadURL(url, req);
+}
+
 export function domContentLoaded() {
   const file = document.getElementById('file');
   file.addEventListener('change', (evt) => {
@@ -40,7 +68,7 @@ export function domContentLoaded() {
     evt.stopPropagation();
 
     tryFetchUploadURL().then((json) => {
-      console.log(json);
+      return tryFetchUpload(json, file.files[0]);
     }).catch((err) => {
       console.log('fetch error');
       console.log(err);
