@@ -1,4 +1,6 @@
 const aws = require('aws-sdk');
+const uuid = require('uuid').v4;
+const randomBytes = require('crypto').randomBytes;
 
 const s3 = new aws.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -8,11 +10,22 @@ const s3 = new aws.S3({
 
 const uploadBucket = process.env.AWS_BUCKET;
 
-export const presignedPost = (key) => {
+const randomPrefix = (len = 4) => {
+  if (!Number.isFinite(len)) {
+    throw new TypeError("Expected a finite number");
+  }
+  return randomBytes(Math.ceil(len / 2))
+    .toString("hex")
+    .slice(0, len);
+};
+
+export const presignedPost = (suffixPath) => () => {
+  const key = uuid();
+  const prefixPath = `${randomPrefix(4)}${suffixPath}`;
   const params = {
     Bucket: uploadBucket,
     Fields: {
-      key: key
+      key: `${prefixPath}/${key}`
     }
   };
 
@@ -25,4 +38,8 @@ export const presignedPost = (key) => {
       }
     });
   });
+};
+
+export const image = {
+  presignedPost: presignedPost('_images')
 };

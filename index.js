@@ -1,13 +1,13 @@
 const express = require('express');
 
-const s3 = require('./s3');
+const image = require('./s3').image;
 
 const app = express();
 
 app.use(express.static('public'));
 
 app.post('/upload', async (req, res) => {
-  const result = await s3.presignedPost('xxx');
+  const result = await image.presignedPost();
 
   res.json(result);
 });
