@@ -20,12 +20,12 @@ const randomPrefix = (len = 4) => {
 };
 
 const presignedPost = (suffixPath) => () => {
-  const key = uuid();
   const prefixPath = `${randomPrefix(4)}${suffixPath}`;
+  const postKey = `${prefixPath}/${uuid()}`;
   const params = {
     Bucket: uploadBucket,
     Fields: {
-      key: `${prefixPath}/${key}`
+      key: postKey
     }
   };
 

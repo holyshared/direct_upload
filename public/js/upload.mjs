@@ -29,8 +29,6 @@ function fetchUploadTo(url, payload) {
     body: formData
   }, payload.options);
 
-  console.log('fetchUploadTo---------');
-
   return fetch(url, req);
 }
 
@@ -38,7 +36,7 @@ const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
   controller.abort();
 }, seconds * 1000);
 
-const timeout = timeoutAfter(40);
+const timeout = timeoutAfter(60);
 
 function tryFetchUploadURL(payload) {
   const abortController = new AbortController();
@@ -53,7 +51,8 @@ function tryFetchUpload(payload, file) {
   const abortController = new AbortController();
 
   const url = payload.url;
-  const variables = Object.assign({ file: file }, payload.fields);
+  const fields = Object.assign({}, payload.fields);
+  const variables = Object.assign(fields, { file: file });
   delete variables.url;
 
   const req = Object.assign({ variables: variables }, { options: { signal: abortController.signal } });
@@ -73,7 +72,6 @@ export function domContentLoaded() {
       return tryFetchUpload(json, file.files[0]);
     }).catch((err) => {
       console.log('fetch error');
-      console.log(err);
       console.log(err.message);
     });
   });
