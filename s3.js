@@ -20,13 +20,14 @@ const randomPrefix = (len = 4) => {
 };
 
 const presignedPost = (suffixPath) => () => {
-  const key = uuid();
   const prefixPath = `${randomPrefix(4)}${suffixPath}`;
+  const postKey = `${prefixPath}/${uuid()}`;
   const params = {
     Bucket: uploadBucket,
     Fields: {
-      key: `${prefixPath}/${key}`
-    }
+      key: postKey
+    },
+    Expires: parseInt(process.env.AWS_PRESIGNED_URL_EXPIRES || 60, 10)
   };
 
   return new Promise((resolve, reject) => {
