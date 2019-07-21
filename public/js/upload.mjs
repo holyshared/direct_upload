@@ -29,6 +29,8 @@ function fetchUploadTo(url, payload) {
     body: formData
   }, payload.options);
 
+  console.log('fetchUploadTo---------');
+
   return fetch(url, req);
 }
 
@@ -58,7 +60,7 @@ function tryFetchUpload(payload, file) {
 
   timeout(abortController);
 
-  return fetchUploadURL(url, req);
+  return fetchUploadTo(url, req);
 }
 
 export function domContentLoaded() {
