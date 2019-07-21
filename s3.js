@@ -26,7 +26,8 @@ const presignedPost = (suffixPath) => () => {
     Bucket: uploadBucket,
     Fields: {
       key: postKey
-    }
+    },
+    Expires: parseInt(process.env.AWS_PRESIGNED_URL_EXPIRES || 60, 10)
   };
 
   return new Promise((resolve, reject) => {
