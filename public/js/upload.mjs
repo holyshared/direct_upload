@@ -63,13 +63,20 @@ function tryFetchUpload(payload, file) {
 }
 
 export function domContentLoaded() {
+  const message = document.getElementById('message');
+
   const file = document.getElementById('file');
   file.addEventListener('change', (evt) => {
     evt.preventDefault();
     evt.stopPropagation();
 
+    message.innerText = 'Preparing to upload';
+
     tryFetchUploadURL().then((json) => {
+      message.innerText = 'Uploading';
       return tryFetchUpload(json, file.files[0]);
+    }).then(() => {
+      message.innerText = 'Uploaded';
     }).catch((err) => {
       console.log('fetch error');
       console.log(err.message);
