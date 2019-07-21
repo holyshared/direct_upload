@@ -53,7 +53,7 @@ function tryFetchUpload(payload, file) {
   const abortController = new AbortController();
 
   const url = payload.url;
-  const variables = Object.assign({ file: file }, payload);
+  const variables = Object.assign({ file: file }, payload.fields);
   delete variables.url;
 
   const req = Object.assign({ variables: variables }, { options: { signal: abortController.signal } });
