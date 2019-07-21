@@ -1,11 +1,22 @@
 const express = require('express');
-
+const basicAuth = require('express-basic-auth');
 const image = require('./s3').image;
 
 const app = express();
 
-app.use(express.static('public'));
+const user = process.env.USERNAME;
+const pass = process.env.PASSWORD;
 
+if (user && pass) {
+  app.use(
+    basicAuth({
+      users: { [user]: pass },
+      challenge: true,
+    }),
+  );
+}
+
+app.use(express.static('public'));
 app.post('/upload', async (req, res) => {
   const result = await image.presignedPost();
 
