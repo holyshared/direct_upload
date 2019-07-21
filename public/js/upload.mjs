@@ -19,11 +19,10 @@ function fetchUploadURL(payload) {
 }
 
 const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
-  console.log('abort---');
   controller.abort();
 }, seconds * 1000);
 
-const timeout = timeoutAfter(1);
+const timeout = timeoutAfter(20);
 
 function tryFetchUploadURL(payload) {
   const abortController = new AbortController();
