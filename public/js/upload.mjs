@@ -11,12 +11,7 @@ const options = {
 
 const withHeaders = (payload) => [options, { body: JSON.stringify(payload) }].reduce((acc, values) => Object.assign(acc, values), {});
 
-function fetchUploadURL(payload) {
-  const req = Object.assign(withHeaders(payload.variables), payload.options);
-  return fetch('/upload', req).then((response) => {
-    return response.json();
-  });
-}
+
 
 function fetchUploadTo(url, payload) {
   const formData = Object.keys(payload.variables).reduce((fd, key) => {
@@ -38,14 +33,34 @@ const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
 
 const timeout = timeoutAfter(60);
 
-function tryFetchUploadURL(payload) {
+
+
+function presignedURLForRandomKey(payload) {
   const abortController = new AbortController();
-  const req = Object.assign({ variables: payload || {} }, { options: { signal: abortController.signal } });
+  const req = Object.assign(payload || {}, { signal: abortController.signal });
 
   timeout(abortController);
 
-  return fetchUploadURL(req);
+  return fetch('/upload', withHeaders(req)).then((response) => {
+    return response.json();
+  });
 }
+
+
+function presignedURLForSameKey(payload) {
+  const abortController = new AbortController();
+  const req = Object.assign(payload || {}, { signal: abortController.signal });
+
+  timeout(abortController);
+
+  return fetch('/upload_same_key', withHeaders(req)).then((response) => {
+    return response.json();
+  });
+}
+
+
+
+
 
 function tryFetchUpload(payload, file) {
   const abortController = new AbortController();
@@ -74,7 +89,7 @@ function mountForRandomKeyFileUpload() {
 
     message.innerText = 'Preparing to upload';
 
-    tryFetchUploadURL().then((json) => {
+    presignedURLForRandomKey().then((json) => {
       message.innerText = 'Uploading';
       return tryFetchUpload(json, file.files[0]);
     }).then(() => {
@@ -98,7 +113,7 @@ function mountForSameKeyFileUpload() {
 
     sameMessage.innerText = 'Preparing to upload';
 
-    tryFetchUploadURL().then((json) => {
+    presignedURLForSameKey().then((json) => {
       sameMessage.innerText = 'Uploading';
       return tryFetchUpload(json, file.files[0]);
     }).then(() => {
