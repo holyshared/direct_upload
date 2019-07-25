@@ -62,10 +62,12 @@ function tryFetchUpload(payload, file) {
   return fetchUploadTo(url, req);
 }
 
-export function domContentLoaded() {
-  const message = document.getElementById('message');
 
+
+function mountForRandomKeyFileUpload() {
+  const message = document.getElementById('message');
   const file = document.getElementById('file');
+
   file.addEventListener('change', (evt) => {
     evt.preventDefault();
     evt.stopPropagation();
@@ -82,4 +84,35 @@ export function domContentLoaded() {
       console.log(err.message);
     });
   });
+}
+
+
+
+function mountForSameKeyFileUpload() {
+  const sameMessage = document.getElementById('same_message');
+  const sameFile = document.getElementById('same_file');
+
+  sameFile.addEventListener('change', (evt) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    sameMessage.innerText = 'Preparing to upload';
+
+    tryFetchUploadURL().then((json) => {
+      sameMessage.innerText = 'Uploading';
+      return tryFetchUpload(json, file.files[0]);
+    }).then(() => {
+      sameMessage.innerText = 'Uploaded';
+    }).catch((err) => {
+      console.log('fetch error');
+      console.log(err.message);
+    });
+  });
+}
+
+
+
+export function domContentLoaded() {
+  mountForRandomKeyFileUpload();
+  mountForSameKeyFileUpload();
 };

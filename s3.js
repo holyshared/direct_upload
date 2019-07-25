@@ -41,6 +41,28 @@ const presignedPost = (suffixPath) => () => {
   });
 };
 
+const samePresignedPost = (suffixPath) => () => {
+  const postKey = `same_key${suffixPath}/same.jpeg`;
+  const params = {
+    Bucket: uploadBucket,
+    Fields: {
+      key: postKey
+    },
+    Expires: parseInt(process.env.AWS_PRESIGNED_URL_EXPIRES || 60, 10)
+  };
+
+  return new Promise((resolve, reject) => {
+    s3.createPresignedPost(params, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+};
+
 exports.image = {
-  presignedPost: presignedPost('_images')
+  presignedPost: presignedPost('_images'),
+  samePresignedPost: presignedPost('_images')
 };

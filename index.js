@@ -19,7 +19,11 @@ if (user && pass) {
 app.use(express.static('public'));
 app.post('/upload', async (req, res) => {
   const result = await image.presignedPost();
+  res.json(result);
+});
 
+app.post('/upload_same_key', async (req, res) => {
+  const result = await image.samePresignedPost();
   res.json(result);
 });
 
