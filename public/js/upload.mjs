@@ -63,7 +63,7 @@ function uploadFile(payload, file) {
   }, new FormData());
 
   const req = {
-    method: 'PUT',
+    method: 'POST',
     body: formData,
     signal: abortController.signal
   };
