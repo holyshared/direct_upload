@@ -72,6 +72,23 @@ function uploadFile(payload, file) {
 }
 
 
+function uploadFileForPut(payload, file) {
+  const abortController = new AbortController();
+  const url = payload.url;
+
+  timeout(abortController);
+
+  const req = {
+    method: 'PUT',
+    body: file,
+    signal: abortController.signal,
+    headers: {
+      'Content-Type': file.type
+    }
+  };
+  return fetch(url, req);
+}
+
 
 function mountForRandomKeyFileUpload() {
   const message = document.getElementById('message');
@@ -109,7 +126,7 @@ function mountForSameKeyFileUpload() {
 
     presignedURLForSameKey().then((json) => {
       sameMessage.innerText = 'Uploading';
-      return uploadFile(json, file.files[0]);
+      return uploadFileForPut(json, sameFile.files[0]);
     }).then(() => {
       sameMessage.innerText = 'Uploaded';
     }).catch((err) => {
