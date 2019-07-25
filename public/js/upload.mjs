@@ -12,21 +12,6 @@ const options = {
 const withHeaders = (payload) => [options, { body: JSON.stringify(payload) }].reduce((acc, values) => Object.assign(acc, values), {});
 
 
-
-function fetchUploadTo(url, payload) {
-  const formData = Object.keys(payload.variables).reduce((fd, key) => {
-    fd.append(key, payload.variables[key]);
-    return fd;
-  }, new FormData());
-
-  const req = Object.assign({
-    method: 'PUT',
-    body: formData
-  }, payload.options);
-
-  return fetch(url, req);
-}
-
 const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
   controller.abort();
 }, seconds * 1000);
@@ -62,7 +47,7 @@ function presignedURLForSameKey(payload) {
 
 
 
-function tryFetchUpload(payload, file) {
+function uploadFile(payload, file) {
   const abortController = new AbortController();
 
   const url = payload.url;
@@ -70,11 +55,20 @@ function tryFetchUpload(payload, file) {
   const variables = Object.assign(fields, { file: file });
   delete variables.url;
 
-  const req = Object.assign({ variables: variables }, { options: { signal: abortController.signal } });
-
   timeout(abortController);
 
-  return fetchUploadTo(url, req);
+  const formData = Object.keys(variables).reduce((fd, key) => {
+    fd.append(key, variables[key]);
+    return fd;
+  }, new FormData());
+
+  const req = {
+    method: 'PUT',
+    body: formData,
+    signal: abortController.signal
+  };
+
+  return fetch(url, req);
 }
 
 
@@ -91,7 +85,7 @@ function mountForRandomKeyFileUpload() {
 
     presignedURLForRandomKey().then((json) => {
       message.innerText = 'Uploading';
-      return tryFetchUpload(json, file.files[0]);
+      return uploadFile(json, file.files[0]);
     }).then(() => {
       message.innerText = 'Uploaded';
     }).catch((err) => {
@@ -115,7 +109,7 @@ function mountForSameKeyFileUpload() {
 
     presignedURLForSameKey().then((json) => {
       sameMessage.innerText = 'Uploading';
-      return tryFetchUpload(json, file.files[0]);
+      return uploadFile(json, file.files[0]);
     }).then(() => {
       sameMessage.innerText = 'Uploaded';
     }).catch((err) => {
