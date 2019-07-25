@@ -64,5 +64,5 @@ const samePresignedPost = (suffixPath) => () => {
 
 exports.image = {
   presignedPost: presignedPost('_images'),
-  samePresignedPost: presignedPost('_images')
+  samePresignedPost: samePresignedPost('_images')
 };
