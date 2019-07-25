@@ -25,7 +25,7 @@ function fetchUploadTo(url, payload) {
   }, new FormData());
 
   const req = Object.assign({
-    method: 'POST',
+    method: 'PUT',
     body: formData
   }, payload.options);
 
