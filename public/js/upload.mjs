@@ -11,26 +11,6 @@ const options = {
 
 const withHeaders = (payload) => [options, { body: JSON.stringify(payload) }].reduce((acc, values) => Object.assign(acc, values), {});
 
-function fetchUploadURL(payload) {
-  const req = Object.assign(withHeaders(payload.variables), payload.options);
-  return fetch('/upload', req).then((response) => {
-    return response.json();
-  });
-}
-
-function fetchUploadTo(url, payload) {
-  const formData = Object.keys(payload.variables).reduce((fd, key) => {
-    fd.append(key, payload.variables[key]);
-    return fd;
-  }, new FormData());
-
-  const req = Object.assign({
-    method: 'POST',
-    body: formData
-  }, payload.options);
-
-  return fetch(url, req);
-}
 
 const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
   controller.abort();
@@ -38,16 +18,36 @@ const timeoutAfter = (seconds) => (controller) => setTimeout(() => {
 
 const timeout = timeoutAfter(60);
 
-function tryFetchUploadURL(payload) {
+
+
+function presignedURLForRandomKey(payload) {
   const abortController = new AbortController();
-  const req = Object.assign({ variables: payload || {} }, { options: { signal: abortController.signal } });
+  const req = Object.assign(payload || {}, { signal: abortController.signal });
 
   timeout(abortController);
 
-  return fetchUploadURL(req);
+  return fetch('/upload', withHeaders(req)).then((response) => {
+    return response.json();
+  });
 }
 
-function tryFetchUpload(payload, file) {
+
+function presignedURLForSameKey(payload) {
+  const abortController = new AbortController();
+  const req = Object.assign(payload || {}, { signal: abortController.signal });
+
+  timeout(abortController);
+
+  return fetch('/upload_same_key', withHeaders(req)).then((response) => {
+    return response.json();
+  });
+}
+
+
+
+
+
+function uploadFile(payload, file) {
   const abortController = new AbortController();
 
   const url = payload.url;
@@ -55,26 +55,54 @@ function tryFetchUpload(payload, file) {
   const variables = Object.assign(fields, { file: file });
   delete variables.url;
 
-  const req = Object.assign({ variables: variables }, { options: { signal: abortController.signal } });
+  timeout(abortController);
+
+  const formData = Object.keys(variables).reduce((fd, key) => {
+    fd.append(key, variables[key]);
+    return fd;
+  }, new FormData());
+
+  const req = {
+    method: 'POST',
+    body: formData,
+    signal: abortController.signal
+  };
+
+  return fetch(url, req);
+}
+
+
+function uploadFileForPut(payload, file) {
+  const abortController = new AbortController();
+  const url = payload.url;
 
   timeout(abortController);
 
-  return fetchUploadTo(url, req);
+  const req = {
+    method: 'PUT',
+    body: file,
+    signal: abortController.signal,
+    headers: {
+      'Content-Type': file.type
+    }
+  };
+  return fetch(url, req);
 }
 
-export function domContentLoaded() {
-  const message = document.getElementById('message');
 
+function mountForRandomKeyFileUpload() {
+  const message = document.getElementById('message');
   const file = document.getElementById('file');
+
   file.addEventListener('change', (evt) => {
     evt.preventDefault();
     evt.stopPropagation();
 
     message.innerText = 'Preparing to upload';
 
-    tryFetchUploadURL().then((json) => {
+    presignedURLForRandomKey().then((json) => {
       message.innerText = 'Uploading';
-      return tryFetchUpload(json, file.files[0]);
+      return uploadFile(json, file.files[0]);
     }).then(() => {
       message.innerText = 'Uploaded';
     }).catch((err) => {
@@ -82,4 +110,35 @@ export function domContentLoaded() {
       console.log(err.message);
     });
   });
+}
+
+
+
+function mountForSameKeyFileUpload() {
+  const sameMessage = document.getElementById('same_message');
+  const sameFile = document.getElementById('same_file');
+
+  sameFile.addEventListener('change', (evt) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+
+    sameMessage.innerText = 'Preparing to upload';
+
+    presignedURLForSameKey().then((json) => {
+      sameMessage.innerText = 'Uploading';
+      return uploadFileForPut(json, sameFile.files[0]);
+    }).then(() => {
+      sameMessage.innerText = 'Uploaded';
+    }).catch((err) => {
+      console.log('fetch error');
+      console.log(err.message);
+    });
+  });
+}
+
+
+
+export function domContentLoaded() {
+  mountForRandomKeyFileUpload();
+  mountForSameKeyFileUpload();
 };
